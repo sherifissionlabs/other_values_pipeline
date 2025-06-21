@@ -1,0 +1,9 @@
+langchain-text-splitters 
+langchain-community
+markdownify
+bs4
+pandas
+openpyxl
+flashtext
+openai
+sentence_transformers
