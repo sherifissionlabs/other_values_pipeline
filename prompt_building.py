@@ -26,46 +26,83 @@ class prompt_building:
     @staticmethod
     def build_prompt(context_example, value_format_prompt):
         context_example = """
-                                    | --- | --- |
-                                    | (19) Pethidine (meperidine) | 9230 |
-                                    | (20) Pethidine-Intermediate-A, 4-cyano-1-methyl-4-phenylpiperidine | 9232 |
-                                    | (21) Pethidine-Intermediate-B, ethyl-4-phenylpiperidine-4-carboxylate | 9233 |
-                                    | (22) Pethidine-Intermediate-C, 1-methyl-4-phenylpiperidine-4-carboxylic acid | 9234 |
-                                    | (23) Phenazocine | 9715 |
-                                    | (24) Piminodine | 9730 |
-                                    | (25) Racemethorphan | 9732 |
-                                    | (26) Racemorphan | 9733 |
-                                    | (27) Remifentanil | 9739 |
-                                    | (28) Sufentanil | 9740 |
-                                    | (29) Tapentadol | 9780 |
-                                    | (30) Thiafentanil | 9729 |
-                                    
+                        PHENOL, including cresols and xylenols and any other homologue of phenol boiling below
+                        220°C, when in animal feed additives containing 15% or less of such substances,
+                        except in preparations containing 1% or less of phenol and in preparations containing
+                        3% or less of cresols and xylenols and other homologues of phenol.
+
+                        PHENYL METHYL KETONE except in preparations containing 25% or less of designated
+                        solvents
+
+                        PERMETHRIN (excluding preparations for human therapeutic use):
+
+                        (a) in preparations containing 25% or less of permethrin; or
+
+                        (b) in preparations for external use, for the treatment of dogs, containing 50% or less
+                        of permethrin when packed in single use containers having a capacity of 4 mL or
+                        less;
+
+                        except in preparations containing 2% or less of permethrin.
+
+                        PRALLETHRIN (cis:trans=20:80) in preparations containing 10% or less of prallethrin
+                        except in insecticidal mats containing 1% or less of prallethrin.
+
+                        POLIXETONIUM SALTS in preparations containing 60% or less of polixetonium salts
+                        except in preparations containing 1% or less of polixetonium salts.
                         """
 
         value_format_prompt = """ 
-                                    [
-                                        {
-                                            "Chemical Name": "Pethidine",
-                                            "type": "DEA Controlled Substances Code Number",
-                                            "value": 9230,
-                                            "remark" : "None",
-                                            "listedunder": "None"
-                                        },
-                                        {
-                                            "Chemical Name": "Tapentadol",
-                                            "type": "DEA Controlled Substances Code Number",
-                                            "value": 9780,
-                                            "remark" : "None",
-                                            "listedunder": "None"
-                                        },
-                                        {
-                                            "Chemical Name": "Phenazocine",
-                                            "type": "DEA Controlled Substances Code Number",
-                                            "value": 9715,
-                                            "remark" : "None",
-                                            "listedunder": "None"
-                                        },
-                                    ]
+                                [
+                                    {
+                                        "Chemical Name": "PHENOL",
+                                        "value": "<=15",
+                                        "unit" :"%",
+                                        "type": "None", 
+                                        "remark" : "including cresols and xylenols and any other homologue of phenol boiling below 220°C, except in preparations containing 1% or less of phenol and in preparations containing 3% or less of cresols and xylenols and other homologues of phenol.",
+                                        "listedunder": "None",
+                                    },
+                                    {
+                                        "Chemical Name": "PHENYL METHYL KETONE",
+                                        "value": "None",
+                                        "unit" : "None",
+                                        "type": "None", 
+                                        "remark" : "except in preparations containing 25% or less of designated solvents",
+                                        "listedunder": "None",
+                                    },
+                                    {
+                                        "Chemical Name": "PERMETHRIN",
+                                        "value": "<=25",
+                                        "unit" : "%",
+                                        "type": "None", 
+                                        "remark" : "excluding preparations for human therapeutic use, except in preparations containing 2% or less of permethrin.",
+                                        "listedunder": "None",
+                                    },
+                                    {
+                                        "Chemical Name": "PERMETHRIN",
+                                        "value": "<=50",
+                                        "unit" : "%",
+                                        "type": "None", 
+                                        "remark" : "excluding preparations for human therapeutic use, except in preparations containing 2% or less of permethrin. when packed in single use containers having a capacity of 4 mL or less",
+                                        "listedunder": "None",
+                                    },
+                                    
+                                    {
+                                        "Chemical Name": "PRALLETHRIN",
+                                        "value": "<=10", 
+                                        "unit" : "%",
+                                        "type": "None", 
+                                        "remark" : "except in insecticidal mats containing 1% or less of prallethrin.",
+                                        "listedunder": "None",
+                                    },
+                                    {
+                                        "Chemical Name": "POLIXETONIUM SALTS",
+                                        "value": "<=60",
+                                        "unit" : "%",
+                                        "type": "None", 
+                                        "remark" : "except in preparations containing 1% or less of polixetonium salts.",
+                                        "listedunder": "None",
+                                    },
+                                ]  
                                     """
 
             # Example JSON format with corrected syntax

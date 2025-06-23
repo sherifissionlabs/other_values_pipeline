@@ -88,3 +88,42 @@ class Pre_processing:
             keyword_processor.add_keyword( chemical )
 
         return keyword_processor 
+    
+    @staticmethod
+    def map_othervalues_to_RR_chemicals(df):
+        # Load input
+        # df = pd.read_csv("inputrr1.csv")
+
+        # Ensure consistent column order
+        columns_to_copy = [col for col in df.columns if col not in ["CAS", "Chemical Name"]]
+
+        # Split base and RR entries
+        base_df = df[~df["CAS"].str.startswith("RR-")].copy()
+        rr_df = df[df["CAS"].str.startswith("RR-")].copy()
+
+        # Normalize names
+        def normalize(name):
+            return str(name).lower().strip()
+
+        # Fill RR rows with corresponding base info using strict word-boundary matching
+        for rr_idx, rr_row in rr_df.iterrows():
+            rr_name = normalize(rr_row["Chemical Name"])
+            
+            for _, base_row in base_df.iterrows():
+                base_name = normalize(base_row["Chemical Name"])
+                
+                # Use \b to ensure it matches whole words or with space boundaries
+                if re.search(rf"\b{re.escape(base_name)}\b", rr_name):
+                    for col in columns_to_copy:
+                        rr_df.at[rr_idx, col] = base_row.get(col, "")
+                    break  # Use first matching base chemical
+
+        # Combine base + updated RR rows back
+        final_df = pd.concat([base_df, rr_df], ignore_index=True)
+
+        # # Save output
+        # final_df.to_csv("output_with_base_data1.csv", index=False)
+        # print(final_df)
+
+        return final_df
+
