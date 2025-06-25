@@ -7,6 +7,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import pandas as pd
 from flashtext import KeywordProcessor
+from database_client import db_data_extraction
 
 # Configure logging
 logging.basicConfig(
@@ -56,14 +57,15 @@ class Pre_processing:
         return new_md_content.lstrip().rstrip()
 
     @staticmethod
-    def creat_chunks(md_path, chunk_size = 2000):
+    def creat_chunks(list_id, chunk_size = 2000):
         # load the file and chunking it 
 
-        loader = TextLoader(md_path,encoding='utf-8')
+        # loader = TextLoader(md_path,encoding='utf-8')
 
-        md_content = loader.load()
+        # md_content = loader.load()
         
-        md_content = md_content[0].page_content
+        # md_content = md_content[0].page_content
+        md_content = db_data_extraction.get_section_md_data_for_list_id(list_id)
 
         md_content = Pre_processing.convert_html_tables_to_markdowns(md_content)
 
@@ -74,13 +76,14 @@ class Pre_processing:
         return chunks
     
     @staticmethod
-    def add_extracted_chemicas_to_flashtext(path_xlsx):
+    def add_extracted_chemicas_to_flashtext(extracted_chemicals_df):
 
         # path_xlsx = "data\\US_DEA_chemicals.xlsx"
 
         keyword_processor = KeywordProcessor(case_sensitive=False)
 
-        df = pd.read_excel(path_xlsx, header=0)
+        # df = pd.read_excel(path_xlsx, header=0)
+        df = extracted_chemicals_df
 
         extracted_chemicals = df['Chemical Name'].values.tolist()
 
@@ -104,22 +107,25 @@ class Pre_processing:
         # Normalize names
         def normalize(name):
             return str(name).lower().strip()
-
-        # Fill RR rows with corresponding base info using strict word-boundary matching
-        for rr_idx, rr_row in rr_df.iterrows():
-            rr_name = normalize(rr_row["Chemical Name"])
-            
-            for _, base_row in base_df.iterrows():
-                base_name = normalize(base_row["Chemical Name"])
+        
+        if rr_df.shape[0]>0:
+            # Fill RR rows with corresponding base info using strict word-boundary matching
+            for rr_idx, rr_row in rr_df.iterrows():
+                rr_name = normalize(rr_row["Chemical Name"])
                 
-                # Use \b to ensure it matches whole words or with space boundaries
-                if re.search(rf"\b{re.escape(base_name)}\b", rr_name):
-                    for col in columns_to_copy:
-                        rr_df.at[rr_idx, col] = base_row.get(col, "")
-                    break  # Use first matching base chemical
+                for _, base_row in base_df.iterrows():
+                    base_name = normalize(base_row["Chemical Name"])
+                    
+                    # Use \b to ensure it matches whole words or with space boundaries
+                    if re.search(rf"\b{re.escape(base_name)}\b", rr_name):
+                        for col in columns_to_copy:
+                            rr_df.at[rr_idx, col] = base_row.get(col, "")
+                        break  # Use first matching base chemical
 
-        # Combine base + updated RR rows back
-        final_df = pd.concat([base_df, rr_df], ignore_index=True)
+            # Combine base + updated RR rows back
+            final_df = pd.concat([base_df, rr_df], ignore_index=True)
+        else:
+            final_df = base_df
 
         # # Save output
         # final_df.to_csv("output_with_base_data1.csv", index=False)

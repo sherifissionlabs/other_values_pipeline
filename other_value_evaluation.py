@@ -30,7 +30,7 @@ class ValuesComparision:
         return util.cos_sim(emb1, emb2).item()
 
     @staticmethod
-    def is_semantically_similar(text1, text2, threshold=0.85):
+    def is_semantically_similar(text1, text2, threshold=0.65):
         return ValuesComparision.get_semantic_similarity(text1, text2) >= threshold
 
     # Deduplicate: pick best match for each (CAS, Chemical Name, value_ext)
@@ -79,29 +79,65 @@ class ValuesComparision:
         accuracy_results = {}
         total = len(merged_df)
 
+        # for col in compare_columns:
+        #     correct = 0
+        #     for _, row in merged_df.iterrows():
+        #         val_ext = str(row.get(f"{col}_ext", "")).strip()
+        #         val_gt = str(row.get(f"{col}_gt", "")).strip()
+
+        #         is_match = (
+        #             ValuesComparision.is_semantically_similar(val_ext, val_gt) if col == "remark"
+        #             else ValuesComparision.normalize(val_ext) == ValuesComparision.normalize(val_gt)
+        #         )
+
+        #         if is_match:
+        #             correct += 1
+        #         else:
+        #             mismatched_records.append({
+        #                 "CAS": row["CAS"],
+        #                 "Chemical Name": row["Chemical Name"],
+        #                 f"{col}_ext": val_ext,
+        #                 f"{col}_gt": val_gt
+        #             })
+
+        #     accuracy = (correct / total) * 100 if total > 0 else 0.0
+        #     accuracy_results[col] = round(accuracy, 2)
+
         for col in compare_columns:
             correct = 0
             for _, row in merged_df.iterrows():
                 val_ext = str(row.get(f"{col}_ext", "")).strip()
                 val_gt = str(row.get(f"{col}_gt", "")).strip()
 
-                is_match = (
-                    ValuesComparision.is_semantically_similar(val_ext, val_gt) if col == "remark"
-                    else ValuesComparision.normalize(val_ext) == ValuesComparision.normalize(val_gt)
-                )
+                if col == "remark":
+                    is_match = ValuesComparision.is_semantically_similar(val_ext, val_gt)
+
+                elif col == "value":
+                    try:
+                        int_ext = int(float(val_ext))
+                        int_gt = int(float(val_gt))
+                        is_match = int_ext == int_gt
+                    except ValueError:
+                        # fallback to normalized string comparison if conversion fails
+                        is_match = ValuesComparision.normalize(val_ext) == ValuesComparision.normalize(val_gt)
+
+                else:
+                    is_match = ValuesComparision.normalize(val_ext) == ValuesComparision.normalize(val_gt)
 
                 if is_match:
                     correct += 1
                 else:
                     mismatched_records.append({
                         "CAS": row["CAS"],
-                        "Chemical Name": row["Chemical Name"],
+                        # "Chemical Name": row["Chemical Name"],
                         f"{col}_ext": val_ext,
                         f"{col}_gt": val_gt
                     })
 
+
             accuracy = (correct / total) * 100 if total > 0 else 0.0
             accuracy_results[col] = round(accuracy, 2)
+
 
         # Save mismatches
         if mismatched_records:
